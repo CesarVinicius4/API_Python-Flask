@@ -6,3 +6,4 @@ bp = Blueprint('main', __name__)
 
 # encapsulando as rotas de cliente
 from app.routes import clients
+from app.routes import random_vetor

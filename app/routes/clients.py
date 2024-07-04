@@ -33,7 +33,7 @@ def create_client(current_user):
 
         # começa as verificações
         if 'username' not in data or 'email' not in data:
-            return jsonify({'error': 'Usarname and Email are required.'}), 400 # bad request
+            return jsonify({'error': 'Username and Email are required.'}), 400 # bad request
         if Client.query.filter_by(username=data['username']).first():
             return jsonify({'error': 'Username is already registered'}), 400 # bad request
         if Client.query.filter_by(email=data['email']).first():
@@ -46,3 +46,37 @@ def create_client(current_user):
         return jsonify(client.to_dict()), 201 # sucesso ao criar cliente
     except Exception as e:
         return jsonify({'error': str(e)}), 500 # erro de servidor
+
+# Exemplo de PUT
+@bp.route('/clients/<int:id>', methods=['PUT'])
+@token_required
+def update_client(current_user, id):
+    try:
+        client = Client.query.get_or_404(id)
+        data = request.get_json() or {}
+
+        if 'username' not in data or 'email' not in data:
+            return jsonify({'error': 'Name and Email are required'}), 404 # bad request
+        if Client.query.filter_by(username=data['username']).first(): # se já existir o nome, retorna o erro
+            return jsonify({'error': 'Name already registered'}), 400
+        if Client.query.filter_by(email=data['email']).first(): # se já existir o email, retorna o erro
+            return jsonify({'error' : 'Email is already registered'}), 400
+
+        client.username = data['username']
+        client.email = data['email']
+        db.session.commit()
+        return jsonify(client.to_dict()), 200 # sucesso na atualização
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500 # erro de servidor
+
+# Exemplo de DELETE
+@bp.route('/clients/<int:id>', methods=['DELETE'])
+@token_required
+def delete_client(current_user, id):
+    try:
+        client = Client.query.get_or_404(id)
+        db.session.delete(client)
+        db.session.commit()
+        return jsonify({'message': 'Cliente deletado com sucesso'}), 204
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
